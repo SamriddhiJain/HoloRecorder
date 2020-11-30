@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading;
+using Microsoft.MixedReality.Toolkit.Input;
+using Microsoft.MixedReality.Toolkit.Utilities;
+using Microsoft.MixedReality.Toolkit;
 
 
 public class PointCloudSubscriber: MonoBehaviour
@@ -16,85 +19,103 @@ public class PointCloudSubscriber: MonoBehaviour
     private static Vector3[] pcl;
     private static Color[] pcl_color;
     private static int count = -1;
+    private static int frame = -1;
 
+    private static float timeSinceStartOfRecording = 0;
+    private static Dictionary<int, float> timesteps = new Dictionary<int, float>();
     private static Dictionary<int, Vector3[]> Pairs = new Dictionary<int, Vector3[]>();
-    //int width;
-    //int height;
-    //int row_step;
-    //int point_step;
+    //private static Dictionary<int, Vector3> leftPalmArray;
+    //private static Dictionary<int, Vector3> rightPalmArray;
 
-    public static void ReceiveMessage(int frame, float[] points)
+    public static void startTimer()
     {
+        timeSinceStartOfRecording = Time.time;
+    }
+
+    public static void ReceiveMessage(float[] points)
+    {
+        frame++;
+        float timeElapsed = Time.time - timeSinceStartOfRecording;
+        timesteps[frame] = timeElapsed;
+
         int size = points.Length / 3;
-        pcl = new Vector3[size];
-        //pcl_color = new Color[size];
+        Vector3[] pcl_temp = new Vector3[size];
+
         Debug.Log(size);
 
+        // get mrtk joints
+        Vector3 leftPalm = new Vector3();
+        Vector3 rightPalm = new Vector3();
+        if (HandJointUtils.TryGetJointPose(TrackedHandJoint.Palm, Handedness.Left, out MixedRealityPose leftPose))
+        {
+            leftPalm = leftPose.Position;
+        }
+
+        if (HandJointUtils.TryGetJointPose(TrackedHandJoint.Palm, Handedness.Right, out MixedRealityPose rightPose))
+        {
+            rightPalm = rightPose.Position;
+        }
+
+        // append null palm coordinates and check later
+        //leftPalmArray[frame_count] = leftPalm;
+        //rightPalmArray[frame_count] = rightPalm;
+        if (leftPalm == null)
+        {
+            leftPalm = new Vector3(0, 0, 0);
+        }
+
+        if (rightPalm == null)
+        {
+            rightPalm = new Vector3(0, 0, 0);
+        }
+
+        float THRESH = 0.2F;
+        int n_points = 0;
+        bool[] filter = new bool[size];
         for (int n = 0; n < size; n++)
         {
-            pcl[n] = new Vector3(points[n*3], points[n * 3 +1], points[n * 3 +2]);
-            //pcl_color[n] = new Color(1, 1, 1);
+            float min_base = float.PositiveInfinity;
+            
+            Vector3 pt = new Vector3(points[n*3], points[n * 3 +1], points[n * 3 +2]);
+            pcl_temp[n] = pt;
+
+            float dist1 = Vector3.Distance(pt, leftPalm);
+            float dist2 = Vector3.Distance(pt, rightPalm);
+            float m = Math.Min(min_base, Math.Min(dist1, dist2));
+
+            if(m < THRESH)
+            {
+                n_points++;
+                filter[n] = true;
+            }
+            else
+            {
+                filter[n] = false;
+            }
+
         }
-        //isMessageReceived = true;
+
+        pcl = new Vector3[n_points];
+        int k = 0;
+        for (int n = 0; n < size; n++)
+        {
+            if (filter[n])
+            {
+                pcl[k] = pcl_temp[n];
+                k++;
+            }
+        }
+
         Pairs[frame] = pcl;
         Debug.Log("Subscriber: point cloud data received");
     }
 
-    //void PointCloudRendering()
-    //{
-    //    pcl = new Vector3[size];
-    //    pcl_color = new Color[size];
-
-    //    int x_posi;
-    //    int y_posi;
-    //    int z_posi;
-
-    //    float x;
-    //    float y;
-    //    float z;
-
-    //    int rgb_posi;
-    //    int rgb_max = 255;
-
-    //    float r;
-    //    float g;
-    //    float b;
-
-    //    //この部分でbyte型をfloatに変換         
-    //    for (int n = 0; n < size; n++)
-    //    {
-    //        x_posi = n * point_step + 0;
-    //        y_posi = n * point_step + 4;
-    //        z_posi = n * point_step + 8;
-
-    //        x = BitConverter.ToSingle(byteArray, x_posi);
-    //        y = BitConverter.ToSingle(byteArray, y_posi);
-    //        z = BitConverter.ToSingle(byteArray, z_posi);
-
-
-    //        rgb_posi = n * point_step + 16;
-
-    //        b = byteArray[rgb_posi + 0];
-    //        g = byteArray[rgb_posi + 1];
-    //        r = byteArray[rgb_posi + 2];
-
-    //        r = r / rgb_max;
-    //        g = g / rgb_max;
-    //        b = b / rgb_max;
-
-    //        pcl[n] = new Vector3(x, z, y);
-    //        pcl_color[n] = new Color(r, g, b);
-
-
-    //    }
-    //}
-
-    public static Vector3[] GetPCL()
+    public static Vector3[] GetPCL(int frame)
     {
-        if(count < Pairs.Count)
+        if(frame >= 0 && frame < Pairs.Count)
         {
-            count++;
-            return Pairs[count];
+            if(Pairs.ContainsKey(frame))
+                return Pairs[frame];
         }
         return new Vector3[0];
     }
@@ -117,6 +138,11 @@ public class PointCloudSubscriber: MonoBehaviour
             return pcl_color;
         }
         return new Color[0];
+    }
+
+    public static Dictionary<int, float> GetTimeSteps()
+    {
+        return timesteps;
     }
 
     public static bool Ready()

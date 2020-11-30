@@ -16,8 +16,6 @@ public class PointCloudRenderer : MonoBehaviour
 
     // The size, positions and colours of each of the pointcloud
     public float pointSize = 5f;
-    int frame = 0;
-
 
     [Header("MAKE SURE THESE LISTS ARE MINIMISED OR EDITOR WILL CRASH")]
     private Vector3[] positions = new Vector3[] { new Vector3(0, 0, 0), new Vector3(0, 1, 0) };
@@ -25,6 +23,8 @@ public class PointCloudRenderer : MonoBehaviour
     //private static PointCloudSubscriber subscriber;
 
     public Transform offset; // Put any gameobject that faciliatates adjusting the origin of the pointcloud in VR. 
+    private static bool showRecording = false;
+    private int runningFrame = -1;
 
     void Start()
     {
@@ -46,26 +46,25 @@ public class PointCloudRenderer : MonoBehaviour
 
     void UpdateMesh()
     {
+        runningFrame++;
 
-
-        positions = PointCloudSubscriber.GetPCL();
-        //colours = PointCloudSubscriber.GetPCLColor();
+        positions = PointCloudSubscriber.GetPCL(runningFrame);
 
         Debug.Log("Renderer: points received");
-        if (positions == null)
+        if (positions == null || positions.Length == 0)
         {
             Debug.Log("Empty array");
             return;
         }
         int size = positions.Length;
-        //pcl = new Vector3[size];
+
         colours = new Color[size];
         Debug.Log(size);
 
         for (int n = 0; n < size; n++)
         {
             //pcl[n] = new Vector3(points[n * 3], points[n * 3 + 1], points[n * 3 + 2]);
-            colours[n] = new Color(1, 1, 1);
+            colours[n] = new Color(1, 1, 1, 1);
         }
 
         mf.mesh.Clear();
@@ -93,14 +92,16 @@ public class PointCloudRenderer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position = offset.position;
-        transform.rotation = offset.rotation;
-        meshRenderer.material.SetFloat("_PointSize", pointSize);
-        if (PointCloudSubscriber.Ready())
+        //transform.position = offset.position;
+        //transform.rotation = offset.rotation;
+        if (showRecording)
         {
             UpdateMesh();
         }
-        
-        frame++;
+    }
+
+    public static void toggleView()
+    {
+        showRecording = !showRecording;
     }
 }

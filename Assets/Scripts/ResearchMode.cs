@@ -24,7 +24,6 @@ public class ResearchMode : MonoBehaviour
     private Texture2D mediaTexture = null;
     private byte[] frameData = null;
     BinaryWriter bw;
-    int frame = 0;
     //private static PointCloudSubscriber subscriber;
 
     void Start()
@@ -34,7 +33,7 @@ public class ResearchMode : MonoBehaviour
         researchMode.InitializeDepthSensor();
         
 #endif
-        StartPreviewEvent();
+        //StartPreviewEvent();
         //mediaMaterial = previewPlane.GetComponent<MeshRenderer>().material;
         //Button btn = yourButton.GetComponent<Button>();
         //btn.onClick.AddListener(StartDepthSensingLoopEvent);
@@ -73,8 +72,8 @@ public class ResearchMode : MonoBehaviour
 #endif
     }
 
-    bool startRealtimePreview = false;
-    public void StartPreviewEvent()
+    static bool startRealtimePreview = false;
+    public static void StartPreviewEvent()
     {
         startRealtimePreview = !startRealtimePreview;
     }
@@ -87,7 +86,6 @@ public class ResearchMode : MonoBehaviour
         Debug.Log("last update");
         if (startRealtimePreview && researchMode.DepthMapTextureUpdated())
         {
-            frame++;
             if (!mediaTexture)
             {
                 mediaTexture = new Texture2D(512, 512, TextureFormat.Alpha8, false);
@@ -125,9 +123,9 @@ public class ResearchMode : MonoBehaviour
             //    Debug.Log("depthData written");
             //}
 
-            if (pointCloud.Length > 0 && frame < 1000)
+            if (pointCloud.Length > 0)
             {
-                PointCloudSubscriber.ReceiveMessage(frame, pointCloud);
+                PointCloudSubscriber.ReceiveMessage(pointCloud);
                 //var byteArray2 = new byte[pointCloud.Length * 4];
                 //Buffer.BlockCopy(pointCloud, 0, byteArray2, 0, byteArray2.Length);
                 //File.WriteAllBytes(String.Format(Application.persistentDataPath+"/"+"pointCloud_{0}.dat", frame), byteArray2);
