@@ -1,5 +1,13 @@
-# Point Cloud object renderer
-This project contains experimental scripts developed as part of holographic remoting project in Mixed reality lab AS20 at ETH Zurich.
+# HoloRecorder
+This project contains experimental scripts developed as part of holographic recording project in Mixed reality lab AS20 at ETH Zurich. The app lets you record hand motions and nearby object motion in 3D using a hololens and play them back as point clouds.
+
+These functionalities are part of a standalone hand motion playback app which will be released in future.
+
+# Dev overview
+- For data recording, AHAT depth from hololens research mode is recorded.
+- The depth has wrap around problem i.e. all the depth values are truncated to 0-1m, which makes the data full of noise to directly work with.
+- I am using MRTK hand joint coordinates to carve out relevant points.
+- For playback the points are displayed with a custom shader by updating mesh of a game object.
 
 # Steps to configure this branch for research mode
 - Build in ARM64
