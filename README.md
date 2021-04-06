@@ -4,7 +4,7 @@ This project contains experimental scripts developed as part of holographic reco
 These functionalities are part of a standalone hand motion playback app which will be released in future.
 
 # Dev overview
-- For data recording, AHAT depth from hololens research mode is recorded.
+- For data recording, AHAT depth from hololens research mode is recorded. The research mode API is in C++, hence a wrapper was needed to use it in unity.
 - The depth has wrap around problem i.e. all the depth values are truncated to 0-1m, which makes the data full of noise to directly work with.
 - I am using MRTK hand joint coordinates to carve out relevant points.
 - For playback the points are displayed with a custom shader by updating mesh of a game object.
@@ -36,3 +36,8 @@ xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
 - Point clouds not coming in screenshots or video capture
 -- Ensure while building in Unity, player settings has a field Stereo Rendering, which should be set to multi pass
 - In general to record reserach mode data, keep the game object as well as main camera at origin.
+
+# References
+- https://github.com/petergu684/HoloLens2-ResearchMode-Unity
+- https://github.com/microsoft/HoloLens2ForCV/
+- https://github.com/MarekKowalski/LiveScan3D-Hololens
