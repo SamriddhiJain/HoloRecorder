@@ -1,6 +1,11 @@
 # HoloRecorder
 This project contains experimental scripts developed as part of holographic recording project in Mixed reality lab AS20 at ETH Zurich. The app lets you record hand motions and nearby object motion in 3D using a hololens and play them back as point clouds.
 
+<p float="left">
+  <img src="/im1.png" width="450" />
+  <img src="/im2.png" width="450" /> 
+</p>
+
 These functionalities are part of a standalone hand motion playback app which will be released in future.
 
 # Dev overview
