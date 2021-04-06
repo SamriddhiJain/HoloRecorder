@@ -6,6 +6,8 @@ This project contains experimental scripts developed as part of holographic reco
   <img src="/im2.png" width="450" /> 
 </p>
 
+Figure: Screenshots while recording and playback.
+
 These functionalities are part of a standalone hand motion playback app which will be released in future.
 
 # Dev overview
